@@ -1,22 +1,21 @@
-import { Server } from 'socket.io'
+import { Server } from "socket.io";
 
-const SocketHandler = (req, res) => {
+export default function SocketHandler(req, res) {
   if (res.socket.server.io) {
-    console.log('Socket is already running')
-  } else {
-    console.log('Socket is initializing')
-    const io = new Server(res.socket.server, {
-      path: "/api/socket",
-    })
-    res.socket.server.io = io
-
-    io.on('connection', socket => {
-      socket.on('input-change', msg => {
-        socket.broadcast.emit('update-input', msg)
-      })
-    })
+    console.log("Already set up");
+    res.end();
+    return;
   }
-  res.end()
-}
 
-export default SocketHandler
+  const io = new Server(res.socket.server, {path:"/api/socket"});
+  res.socket.server.io = io;
+
+  io.on("connection", (socket) => {
+    socket.on("send-message", (obj) => {
+      io.emit("receive-message", obj);
+    });
+  });
+
+  console.log("Setting up socket");
+  res.end();
+}
